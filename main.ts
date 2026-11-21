@@ -2,7 +2,8 @@
 //
 // The X post is the entry. This program has one job only: deliver the
 // post's address to the grader. It copies POST.json from the repository
-// root into the output directory, byte for byte, and does nothing else.
+// root into the output directory, byte for byte, then reads both files
+// back and proves the copy is exact before it exits well.
 // Node.js standard library only: no network, no clock, no randomness —
 // the same input always produces the same output.
 //
@@ -59,4 +60,17 @@ try {
   copyFileSync(sourcePath, targetPath);
 } catch (err) {
   fail(`could not copy POST.json to ${targetPath}: ${(err as Error).message}`);
+}
+
+// The hand-in counts only if the delivered file is the repository's
+// POST.json byte for byte, so prove it before exiting well: read both
+// files back and compare them exactly. A short or corrupted copy fails
+// here rather than delivering the wrong address to the grader.
+const sourceBytes = readFileSync(sourcePath);
+const targetBytes = readFileSync(targetPath);
+
+if (!sourceBytes.equals(targetBytes)) {
+  fail(
+    `copied POST.json differs from the original (${targetBytes.length} of ${sourceBytes.length} bytes match in length only)`,
+  );
 }
